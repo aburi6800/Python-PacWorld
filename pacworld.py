@@ -2,6 +2,7 @@ import time
 import tkinter
 import random
 import os
+import csv
 from PIL import Image, ImageTk, ImageDraw
 
 ############################################################################### 
@@ -15,7 +16,7 @@ VRM_HEIGHT = 24
 # ゲームの状態
 GAMESTATUS_TITLE = 0
 GAMESTATUS_START = 1
-GAMESTATUS_MAIN = 2
+GAMESTATUS_GAME = 2
 GAMESTATUS_MISS = 3
 GAMESTATUS_OVER = 4
 
@@ -31,7 +32,7 @@ vrm = [blankRow] * VRM_HEIGHT
 photoImage = ""
 
 # ゲームの状態管理用
-gameStatus = GAMESTATUS_MAIN
+gameStatus = GAMESTATUS_GAME
 
 # ゲームの経過時間管理用
 gameTime = 0
@@ -41,7 +42,15 @@ pac_ptn = 0
 
 # ハイスコア
 highScore = 2000
+
+# スコア
 score = 0
+
+# マップの横位置
+map_x = 0
+
+# ラウンド
+round = 0
 
 
 ############################################################################### 
@@ -51,6 +60,19 @@ def title():
 	global pac_ptn
 
 	pac_ptn = (pac_ptn + 1) % 8
+
+
+############################################################################### 
+# ゲームメイン
+############################################################################### 
+def game():
+	global map_x, pac_ptn
+
+	if map_x <= 410:
+		map_x = map_x + 1
+
+	pac_ptn = (pac_ptn + 1) % 4
+
 
 ############################################################################### 
 # 画面描画
@@ -66,8 +88,8 @@ def draw():
 		img_screen = drawTitle()
 
 	# ゲーム画面
-	if gameStatus == GAMESTATUS_MAIN:
-		img_screen = drawMain()
+	if gameStatus == GAMESTATUS_GAME:
+		img_screen = drawGame()
 
 	# 画面イメージを拡大
 	img_screen = img_screen.resize((img_screen.width * 2, img_screen.height * 2), Image.NEAREST)
@@ -103,10 +125,17 @@ def drawTitle():
 ############################################################################### 
 # ゲーム画面描画
 ############################################################################### 
-def drawMain():
+def drawGame():
 
 	# オフスクリーン作成
 	img_screen = img_gamebg.copy()
+
+	# マップ描画
+	for i in range(40):
+		writeText(img_screen, i, 17, (map[round][map_x + i:map_x + i + 40]))
+		
+	# パックマン
+	img_screen.paste(img_pac[pac_ptn], (gPos(10), gPos(13))) 
 
 	return img_screen
 
@@ -160,6 +189,10 @@ def main():
 	if gameStatus == GAMESTATUS_TITLE:
 		title()
 
+	# ゲームメイン
+	if gameStatus == GAMESTATUS_GAME:
+		game()
+
 	# 画面描画
 	draw()
 
@@ -212,6 +245,18 @@ y = (13, 11, 9, 8 ,7, 7, 8, 9, 11, 13)
 # ロングジャンプ時のY座標
 ly = (13, 11, 9, 8, 8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 9, 11, 13)
 
+# マップデータ読み込み
+map = []
+field_start = [0x87, 0x87, 0x87, 0x87, 0x87, 0x20, 0x53, 0x54, 0x41, 0x52, 0x54, 0x20, 0x3D, 0x3E, 0x87, 0x87, 0x87, 0x87, 0x87, 0x87, 0x87, 0x87, 0x87, 0x87, 0x87]
+field_goal = [0x92, 0x47, 0x4F, 0x41, 0x4C, 0x20, 0x49, 0x4E, 0x93, 0x83, 0x83, 0x83]
+for i in range(3):
+	f = open(basePath + os.sep + "Data" + os.sep + "map0" + str(i + 1) + ".dat")	
+	reader = csv.reader(f)
+	field = []
+	for row in reader:
+		for data in row:
+			field.append(int(data, 16))
+	map.append(field_start + field + field_goal)
 
 # メイン処理
 main()
