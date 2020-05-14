@@ -40,6 +40,12 @@ gameTime = 0
 # パックマンのキャラクタパターン
 pac_ptn = 0
 
+# パックマンのY座標
+pac_y = 13
+
+# パックマンの残り
+pac_left = 2
+
 # ハイスコア
 highScore = 2000
 
@@ -51,6 +57,29 @@ map_x = 0
 
 # ラウンド
 round = 0
+
+
+############################################################################### 
+# メイン処理
+############################################################################### 
+def main():
+	global gameTime
+
+	if gameStatus == GAMESTATUS_TITLE:
+		# タイトル
+		title()
+
+	elif gameStatus == GAMESTATUS_GAME or gameStatus == GAMESTATUS_MISS or gameStatus == GAMESTATUS_OVER:
+		# ゲームメイン
+		game()
+
+	# 画面描画
+	draw()
+
+	# 時間進行
+	gameTime = gameTime + 1
+
+	root.after(50, main)
 
 
 ############################################################################### 
@@ -66,12 +95,36 @@ def title():
 # ゲームメイン
 ############################################################################### 
 def game():
-	global map_x, pac_ptn
+	global map_x, pac_ptn, pac_y, pac_left, gameStatus, gameTime
 
-	if map_x <= 410:
-		map_x = map_x + 1
+	if gameStatus == GAMESTATUS_GAME:
+		if map_x <= 410:
+			map_x = map_x + 1
 
-	pac_ptn = (pac_ptn + 1) % 4
+		pac_ptn = (pac_ptn + 1) % 4
+
+		# 穴判定
+		if map[round][map_x + 10:map_x + 15] == [0x20] * 5:
+			gameStatus = GAMESTATUS_MISS
+			gameTime = 0
+			pac_ptn = 5
+		
+	elif gameStatus == GAMESTATUS_MISS:
+		if gameTime < 7:
+			pac_y = pac_y + 1
+		elif gameTime > 30:
+			pac_left = pac_left - 1
+			gameTime = 0
+			if pac_left < 0:
+				gameStatus = GAMESTATUS_OVER
+			else:
+				pac_y = 13
+				gameStatus = GAMESTATUS_GAME
+
+	elif gameStatus == GAMESTATUS_OVER:
+		if gameTime > 30:
+			gameStatus = GAMESTATUS_TITLE
+			gameTime = 0
 
 
 ############################################################################### 
@@ -83,13 +136,18 @@ def draw():
     # canvasのイメージ削除
 	canvas.delete("SCREEN")
 
-	# タイトル
+
 	if gameStatus == GAMESTATUS_TITLE:
+		# タイトル
 		img_screen = drawTitle()
 
-	# ゲーム画面
-	if gameStatus == GAMESTATUS_GAME:
+	elif gameStatus == GAMESTATUS_GAME or gameStatus == GAMESTATUS_MISS or gameStatus == GAMESTATUS_OVER:
+		# ゲーム画面
 		img_screen = drawGame()
+
+	else:
+		img_screen = img_bg.copy()
+
 
 	# 画面イメージを拡大
 	img_screen = img_screen.resize((img_screen.width * 2, img_screen.height * 2), Image.NEAREST)
@@ -130,12 +188,25 @@ def drawGame():
 	# オフスクリーン作成
 	img_screen = img_gamebg.copy()
 
+	# パックマンの残り表示
+	for i in range(pac_left):
+		writeText(img_screen, 30 + i * 3, 0, [0xE6, 0XE5])
+		writeText(img_screen, 30 + i * 3, 1, [0xE4, 0XE7])
+	
 	# マップ描画
 	for i in range(40):
 		writeText(img_screen, i, 17, (map[round][map_x + i:map_x + i + 40]))
 		
 	# パックマン
-	img_screen.paste(img_pac[pac_ptn], (gPos(10), gPos(13))) 
+	img_screen.paste(img_pac[pac_ptn], (gPos(10), gPos(pac_y))) 
+
+	# ミスメッセージ
+	if (gameStatus == GAMESTATUS_MISS and gameTime > 6) or gameStatus == GAMESTATUS_OVER:
+		writeText(img_screen, 13, 8, ">> OUT !! <<")
+
+	# ゲームオーバーメッセージ
+	if gameStatus == GAMESTATUS_OVER:
+		writeText(img_screen, 11, 12, ">> GAME OVER <<")
 
 	return img_screen
 
@@ -178,25 +249,6 @@ def loadImage(filePath):
 def gPos(value):
 
 	return value * 8
-
-
-############################################################################### 
-# メイン処理
-############################################################################### 
-def main():
-
-	# タイトル
-	if gameStatus == GAMESTATUS_TITLE:
-		title()
-
-	# ゲームメイン
-	if gameStatus == GAMESTATUS_GAME:
-		game()
-
-	# 画面描画
-	draw()
-
-	root.after(50, main)
 
 
 # Windowを生成
