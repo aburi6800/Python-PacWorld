@@ -20,6 +20,15 @@ GAMESTATUS_GAME = 2
 GAMESTATUS_MISS = 3
 GAMESTATUS_OVER = 4
 
+# キー判定用
+KEY_LEFT = "Left"
+KEY_RIGHT = "Right"
+KEY_SPACE = "space"
+KEY_Z = "z"
+
+# ジャンプ種別
+JUMP_HIGH = "H"
+JUMP_LOW = "L"
 
 # スクリプトのパス
 basePath = os.path.abspath(os.path.dirname(__file__))
@@ -32,7 +41,7 @@ vrm = [blankRow] * VRM_HEIGHT
 photoImage = ""
 
 # ゲームの状態管理用
-gameStatus = GAMESTATUS_GAME
+gameStatus = GAMESTATUS_TITLE
 
 # ゲームの経過時間管理用
 gameTime = 0
@@ -42,6 +51,12 @@ pac_ptn = 0
 
 # パックマンのY座標
 pac_y = 13
+
+# パックマンジャンプフラグ
+pac_jump_flg = ""
+
+# パックマンジャンプカウンタ
+pac_jump_cnt = 0
 
 # パックマンの残り
 pac_left = 2
@@ -58,12 +73,19 @@ map_x = 0
 # ラウンド
 round = 0
 
+# 最後に進んだラウンド
+lastRound = 0
+
+# キーイベント用
+key = ""
+keyOff = False
+
 
 ############################################################################### 
 # メイン処理
 ############################################################################### 
 def main():
-	global gameTime
+	global gameTime, key, keyOff
 
 	if gameStatus == GAMESTATUS_TITLE:
 		# タイトル
@@ -79,23 +101,102 @@ def main():
 	# 時間進行
 	gameTime = gameTime + 1
 
+	# キーリピート対策
+	if keyOff == True:
+		key = ""
+		keyOff = False
+
 	root.after(50, main)
+
+
+############################################################################### 
+# キーイベント：キー押す
+############################################################################### 
+def pressKey(e):
+	global key, keyOff
+
+	key = e.keysym
+	keyOff = False
+
+
+############################################################################### 
+# キーイベント：キー離す
+############################################################################### 
+def releaseKey(e):
+	global keyOff
+
+	keyOff = True
 
 
 ############################################################################### 
 # タイトル
 ############################################################################### 
 def title():
-	global pac_ptn
+	global key, pac_ptn, gameStatus, gameTime
 
 	pac_ptn = (pac_ptn + 1) % 8
+
+	if key == KEY_SPACE:
+		# ゲーム初期化
+		initializeGame(lastRound)
+		gameStatus = GAMESTATUS_GAME
+		gameTime = 0
+
+	if key == KEY_Z:
+		# ゲーム初期化
+		initializeGame(0)	
+		gameStatus = GAMESTATUS_GAME
+		gameTime = 0
+
+	key = ""
+
+
+############################################################################### 
+# ゲーム初期化
+############################################################################### 
+def initializeGame(startRound):
+	global round, score, pac_left
+
+	# ラウンド
+	round = startRound
+
+	# スコア
+	score = 0
+
+	# パックマンの残り
+	pac_left = 2
+
+	# ラウンド初期化
+	initializeRound()
+
+
+############################################################################### 
+# ラウンド初期化
+############################################################################### 
+def initializeRound():
+	global pac_y, pac_jump_flg, pac_jump_cnt, pac_ptn, map_x
+
+	# パックマンのY座標
+	pac_y = 13
+
+	# パックマンのキャラクタパターン
+	pac_ptn = 0
+
+	# パックマンジャンプフラグ
+	pac_jump_flg = ""
+
+	# パックマンジャンプカウンタ
+	pac_jump_cnt = 0
+
+	# マップの横位置
+	map_x = 0
 
 
 ############################################################################### 
 # ゲームメイン
 ############################################################################### 
 def game():
-	global map_x, pac_ptn, pac_y, pac_left, gameStatus, gameTime
+	global map_x, pac_ptn, pac_y, pac_left, pac_jump_flg, pac_jump_cnt, gameStatus, gameTime
 
 	if gameStatus == GAMESTATUS_GAME:
 		if map_x <= 410:
@@ -103,11 +204,30 @@ def game():
 
 		pac_ptn = (pac_ptn + 1) % 4
 
-		# 穴判定
-		if map[round][map_x + 10:map_x + 15] == [0x20] * 5:
-			gameStatus = GAMESTATUS_MISS
-			gameTime = 0
-			pac_ptn = 5
+		# ジャンプ中？
+		if pac_jump_flg != "":
+			pac_jump_cnt = pac_jump_cnt + 1
+			if pac_jump_flg == JUMP_LOW and pac_jump_cnt == 9:
+				pac_jump_flg = ""
+				pac_jump_cnt = 0
+			if pac_jump_flg == JUMP_HIGH and pac_jump_cnt == 19:
+				pac_jump_flg = ""
+				pac_jump_cnt = 0
+
+		else:
+			# ジャンプ
+			if key == KEY_Z:
+				if map[round][map_x + 12:map_x + 13] == "=":
+					pac_jump_flg = JUMP_HIGH
+				else:
+					pac_jump_flg = JUMP_LOW
+				pac_jump_cnt = 0
+
+			# 穴判定
+			if map[round][map_x + 10:map_x + 15] == [0x20] * 5:
+				gameStatus = GAMESTATUS_MISS
+				gameTime = 0
+				pac_ptn = 5
 		
 	elif gameStatus == GAMESTATUS_MISS:
 		if gameTime < 7:
@@ -118,7 +238,7 @@ def game():
 			if pac_left < 0:
 				gameStatus = GAMESTATUS_OVER
 			else:
-				pac_y = 13
+				initializeRound()
 				gameStatus = GAMESTATUS_GAME
 
 	elif gameStatus == GAMESTATUS_OVER:
@@ -192,13 +312,21 @@ def drawGame():
 	for i in range(pac_left):
 		writeText(img_screen, 30 + i * 3, 0, [0xE6, 0XE5])
 		writeText(img_screen, 30 + i * 3, 1, [0xE4, 0XE7])
-	
+
+	# ラウンド表示
+	writeText(img_screen, 24, 0, str(round + 1))
+
 	# マップ描画
 	for i in range(40):
 		writeText(img_screen, i, 17, (map[round][map_x + i:map_x + i + 40]))
 		
 	# パックマン
-	img_screen.paste(img_pac[pac_ptn], (gPos(10), gPos(pac_y))) 
+	if pac_jump_flg == JUMP_LOW:
+		img_screen.paste(img_pac[4 + (pac_jump_cnt > 5)], (gPos(10), gPos(lowJump_y[pac_jump_cnt]))) 
+	elif pac_jump_flg == JUMP_HIGH:
+		img_screen.paste(img_pac[4 + (pac_jump_cnt > 5)], (gPos(10), gPos(highJump_y[pac_jump_cnt]))) 
+	else:
+		img_screen.paste(img_pac[pac_ptn], (gPos(10), gPos(pac_y))) 
 
 	# ミスメッセージ
 	if (gameStatus == GAMESTATUS_MISS and gameTime > 6) or gameStatus == GAMESTATUS_OVER:
@@ -255,6 +383,8 @@ def gPos(value):
 root = tkinter.Tk()
 root.geometry(str(VRM_WIDTH * 8 * 2) + "x" + str(VRM_HEIGHT * 8 * 2))
 root.title("PAC-WORLD on Python")
+root.bind("<KeyPress>", pressKey)
+root.bind("<KeyRelease>", releaseKey)
 
 # Canvas生成
 canvas = tkinter.Canvas(width = (VRM_WIDTH * 8 * 2), height = (VRM_HEIGHT * 8 * 2))
@@ -292,10 +422,10 @@ writeText(img_gamebg, 0, 4, (0x20, 0x20, 0xE4, 0x87, 0x87, 0xE7, 0xE6, 0xE5, 0xE
 writeText(img_gamebg, 0, 5, (0x20, 0xE4, 0x87, 0x87, 0xE7, 0x20, 0x20, 0xE6, 0x87, 0x87, 0xE7, 0xE6, 0x87, 0x87, 0xE7, 0x20, 0x20, 0xE6, 0x87, 0x87, 0x87, 0x87, 0xE7, 0x20, 0x20, 0xE6, 0x87, 0x87, 0xE5))
 
 # ジャンプ時のY座標
-y = (13, 11, 9, 8 ,7, 7, 8, 9, 11, 13)
+lowJump_y = (13, 11, 9, 8 ,7, 7, 8, 9, 11, 13)
 
 # ロングジャンプ時のY座標
-ly = (13, 11, 9, 8, 8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 9, 11, 13)
+highJump_y = (13, 11, 9, 8, 8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 9, 11, 13)
 
 # マップデータ読み込み
 map = []
