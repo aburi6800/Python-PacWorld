@@ -202,22 +202,30 @@ def game():
 		if map_x <= 410:
 			map_x = map_x + 1
 
-		pac_ptn = (pac_ptn + 1) % 4
 
 		# ジャンプ中？
 		if pac_jump_flg != "":
+			pac_ptn = 4 + (pac_jump_cnt > 5)
 			pac_jump_cnt = pac_jump_cnt + 1
-			if pac_jump_flg == JUMP_LOW and pac_jump_cnt == 9:
-				pac_jump_flg = ""
-				pac_jump_cnt = 0
-			if pac_jump_flg == JUMP_HIGH and pac_jump_cnt == 19:
-				pac_jump_flg = ""
-				pac_jump_cnt = 0
+			if pac_jump_flg == JUMP_LOW:
+				pac_y = lowJump_y[pac_jump_cnt]
+				if pac_jump_cnt == 9:
+					pac_jump_flg = ""
+					pac_jump_cnt = 0
+					pac_y = 13
+			if pac_jump_flg == JUMP_HIGH:
+				pac_y = highJump_y[pac_jump_cnt]
+				if pac_jump_cnt == 19:
+					pac_jump_flg = ""
+					pac_jump_cnt = 0
+					pac_y = 13
 
 		else:
+			pac_ptn = (pac_ptn + 1) % 4
+
 			# ジャンプ
 			if key == KEY_Z:
-				if map[round][map_x + 12:map_x + 13] == "=":
+				if map[round][map_x + 12:map_x + 13] == [0x3D]:
 					pac_jump_flg = JUMP_HIGH
 				else:
 					pac_jump_flg = JUMP_LOW
@@ -319,14 +327,9 @@ def drawGame():
 	# マップ描画
 	for i in range(40):
 		writeText(img_screen, i, 17, (map[round][map_x + i:map_x + i + 40]))
-		
+
 	# パックマン
-	if pac_jump_flg == JUMP_LOW:
-		img_screen.paste(img_pac[4 + (pac_jump_cnt > 5)], (gPos(10), gPos(lowJump_y[pac_jump_cnt]))) 
-	elif pac_jump_flg == JUMP_HIGH:
-		img_screen.paste(img_pac[4 + (pac_jump_cnt > 5)], (gPos(10), gPos(highJump_y[pac_jump_cnt]))) 
-	else:
-		img_screen.paste(img_pac[pac_ptn], (gPos(10), gPos(pac_y))) 
+	img_screen.paste(img_pac[pac_ptn], (gPos(10), gPos(pac_y))) 
 
 	# ミスメッセージ
 	if (gameStatus == GAMESTATUS_MISS and gameTime > 6) or gameStatus == GAMESTATUS_OVER:
