@@ -1,3 +1,4 @@
+# -*-coding: utf-8 -*-
 import time
 import tkinter
 import random
@@ -11,7 +12,7 @@ from PIL import Image, ImageTk, ImageDraw
 
 # 仮想VRAMのサイズ
 VRM_WIDTH = 40
-VRM_HEIGHT = 24
+VRM_HEIGHT = 25
 
 # ゲームの状態
 GAMESTATUS_TITLE = 0
@@ -34,10 +35,6 @@ JUMP_NO = 0
 
 # スクリプトのパス
 basePath = os.path.abspath(os.path.dirname(__file__))
-
-# 空の仮想VRAM配列
-blankRow = [0] * VRM_WIDTH
-vrm = [blankRow] * VRM_HEIGHT
 
 # PhotoImageの保存用変数
 photoImage = ""
@@ -591,7 +588,7 @@ map = []
 field_start = [0x87, 0x87, 0x87, 0x87, 0x87, 0x20, 0x53, 0x54, 0x41, 0x52, 0x54, 0x20, 0x3D, 0x3E, 0x87, 0x87, 0x87, 0x87, 0x87, 0x87, 0x87, 0x87, 0x87, 0x87, 0x87]
 field_goal = [0x92, 0x47, 0x4F, 0x41, 0x4C, 0x20, 0x49, 0x4E, 0x93, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83]
 for i in range(4):
-	f = open(basePath + os.sep + "Data" + os.sep + "map0" + str(i + 1) + ".dat")	
+	f = open(basePath + os.sep + "data" + os.sep + "map0" + str(i + 1) + ".dat")	
 	reader = csv.reader(f)
 	field = []
 	for row in reader:
