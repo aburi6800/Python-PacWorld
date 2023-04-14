@@ -3,7 +3,7 @@
 ---
 # PAC-WORLD on Python
 
-<img src="images/screenshot001.png">
+<img src="Images/screenshot001.png">
 
 ## Overview
 
