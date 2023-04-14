@@ -1,9 +1,9 @@
-[ [Engligh](README.md) | [日本語](README.ja.md) ]
+[ [Engligh](README.md) | [日本語](README_ja.md) ]
 
 ---
 # PAC-WORLD on Python
 
-<img src="images/screenshot001.png">
+<img src="Images/screenshot001.png">
 
 ## 概要
 
@@ -45,7 +45,7 @@ $ python pacworld.py
 
 ## How to play
 
-<img src="images/screenshot002.png">
+<img src="Images/screenshot002.png">
 
 - 穴に落ちないようにゴールまで行ってください。  
 - `$`を取るとボーナス点が入ります。
