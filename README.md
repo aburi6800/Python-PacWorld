@@ -1,4 +1,4 @@
-[ [Engligh](README.md) | [日本語](README.ja.md) ]
+[ [Engligh](README.md) | [日本語](README_ja.md) ]
 
 ---
 # PAC-WORLD on Python
