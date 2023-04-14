@@ -1,41 +1,72 @@
-# PAC-WORLD
+[ [Engligh](README.md) | [日本語](README.ja.md) ]
+
+---
+# PAC-WORLD on Python
+
+<img src="images/screenshot001.png">
 
 ## Overview
 
-NEC PC8001 (N-BASIC) のゲームをPython3に移植しました。  
 Porting the NEC PC8001 (N-BASIC) game to Python.  
+It can work in any environment where the TKInter library runs.
 
-## Dependency
+## Requirements
 
-* Python 3.8.2 Leter.
-* Pillow 7.1.2
+* Python 3.8.2 Leter.  
+* Pillow 7.1.2 Leter.  
 
-> Pillowのインストールについては、以下を参照。  
+The installation of Pillow compatible with the Python version is done below:  
+```
+$ python -m pip install --upgrade pip
+$ python -m pip install --upgrade Pillow
+```
+
 > See below for Pillow installation.  
 > <https://pillow.readthedocs.io/en/latest/installation.html>
 
-## Usage
+## Running the game
 
-このリポジトリをcloneしたディレクトリで、以下を入力してください。  
-In the directory where you have cloned this repository, type:
+For the first time only, clone the git repository.
+```
+$ git clone https://github.com/aburi6800/Python-PacWorld.git
+```
 
-    python -u pacworld.py
+Execute the following command.
+```
+$ cd Python-PacWorld
+$ python pacworld.py
+```
+
+> For Linux, use the `python3` command instead of the `python` command,  
+> or install the `python-is-python3` package.  
+> ```
+> $ sudo apt install python-is-python3
+> ```
 
 ## How to play
 
-穴に落ちないようにゴールに進みます。  
-Go to the goal without falling into the hole.  
+<img src="images/screenshot002.png">
 
-|key  |Explanation              |
-|:----|:------------------------|
-|←    |スピードダウン(Speed down)|
-|→    |スピードアップ(Speed up)  |
-|z    |ジャンプ(Jump)           |
+- Go to the goal without falling into the hole.  
+- Bonus points for passing the `$`.
+- You can make a big jump if you jump on the `=`.
+- There are 4 stages in all.
 
-> 遊び方は以下のPDFファイルを参照。  
-> Please refer to the following PDF file for how to play.  
-> [PAC-WORLD.pdf](https://github.com/aburi6800/PacWorld/blob/master/PAC-WORLD.pdf)
+## Controls
+
+|key|Description|
+| --- | --- |
+|left cursor key|Speed down|
+|right cursor key|Speed up|
+|z|Jump, Start Game|
 
 ## Authors
-ABURI6800(Hitoshi Iwai)
+Hitoshi Iwai(aburi6800)
+
+## Thanks
+Tetsu Matsushima, author of the original game.
+
+## License
+MIT License
+
 
