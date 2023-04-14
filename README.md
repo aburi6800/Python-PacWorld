@@ -45,7 +45,7 @@ $ python pacworld.py
 
 ## How to play
 
-<img src="images/screenshot002.png">
+<img src="Images/screenshot002.png">
 
 - Go to the goal without falling into the hole.  
 - Bonus points for passing the `$`.
